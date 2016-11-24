@@ -6,6 +6,7 @@
 package aw_cluster;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import weka.clusterers.AbstractClusterer;
 import weka.core.Capabilities;
 import weka.core.Capabilities.Capability;
@@ -34,7 +35,7 @@ public class myAgnes extends AbstractClusterer
 
     private int numCluster = 2;
     private int[] assignments;
-    private ArrayList< Integer >[] clusterIndex;
+    private ArrayList< Integer >[] clusteredIndex;
 
     public class MergePair implements Comparable< MergePair >  {
         int i, j;
@@ -131,14 +132,20 @@ public class myAgnes extends AbstractClusterer
         constuctCluster(numCluster);
     }
 
-    private class DisjoinSetUnion
+    public class DisjoinSetUnion
     {
         private int[] par;
         private int[] set;
+        private ArrayList< Integer > [] elements;
         public DisjoinSetUnion(int n) {
             par = new int[n];
-            for (int i = 0; i < n; i++)
+            set = new int[n];
+            elements = new ArrayList[n];
+            for (int i = 0; i < n; i++) {
                 par[i] = -1;
+                elements[i] = new ArrayList< Integer > ();
+                elements[i].add(i);
+            }
         }
         public int find(int x) {
             if (par[x] < 0) return x;
@@ -155,24 +162,17 @@ public class myAgnes extends AbstractClusterer
             if (par[u] < par[v]) {
                 par[u] += par[v];
                 par[v] = u;
+                elements[u].addAll(elements[v]);
             }
             else {
                 par[v] += par[u];
                 par[u] = v;
+                elements[v].addAll(elements[u]);
             }
             return true;
         }
-        public void normalize() {
-            int cnt = 0;
-            set = new int[par.length];
-            for (int i = 0; i < par.length; i++)
-                if (par[i] < 0)
-                    set[i] = cnt++;
-            for (int i = 0; i < par.length; i++)
-                set[i] = set[find(i)];
-        }
-        public int getSet(int i) {
-            return set[i];
+        public ArrayList< Integer > getElements(int index) {
+            return par[index] < 0 ? elements[index] : null;
         }
     }
 
@@ -183,13 +183,14 @@ public class myAgnes extends AbstractClusterer
             MergePair pair = mergePairs.get(i);
             dsu.merge(pair.i, pair.j);
         }
-        dsu.normalize();
-        clusterIndex = new ArrayList[noCluster];
-        for (int i = 0; i < noCluster; i++)
-            clusterIndex[i] = new ArrayList();
-        for (int i = 0; i < instances.numInstances(); i++) {
-            assignments[i] = dsu.getSet(i);
-            clusterIndex[dsu.getSet(i)].add(i);
+        clusteredIndex = new ArrayList[noCluster];
+        int index = 0;
+        for (int i = 0; i < instances.numInstances(); i++)
+            if (dsu.find(i) == i)
+                clusteredIndex[index++] = dsu.getElements(i); 
+        for (int i = 0; i < noCluster; i++) if (clusteredIndex[i] != null) {
+            for (Integer e : clusteredIndex[i])
+                assignments[e] = i;
         }
     }
 
@@ -229,7 +230,40 @@ public class myAgnes extends AbstractClusterer
     public void setDistanceFunction(DistanceFunction distanceFunction) {
         this.distanceFunction = distanceFunction;
     }
-    public ArrayList< Integer >[] getClusterIndex() {
-        return this.clusterIndex;
+    public ArrayList< Integer >[] getClusteredIndex() {
+        return this.clusteredIndex;
+    }
+    
+    public int getLinkage() {
+    	return linkage;
+    }
+
+    public void setLinkage(int linkage) {
+        this.linkage = linkage;
+    }
+    
+    public String toString() {
+        StringBuffer sb = new StringBuffer();
+        sb.append("myAgnes\n=======\n");
+        DisjoinSetUnion dsu = new DisjoinSetUnion(instances.numInstances());
+        for (int i = 0; i < instances.numInstances(); i++)
+            sb.append("["+i+"]");
+        for (int i = 0; i < mergePairs.size(); i++) {
+            dsu.merge(mergePairs.get(i).i, mergePairs.get(i).j);
+            for (int j = 0; j < instances.numInstances(); j++) if (dsu.getElements(j) != null) {
+                ArrayList< Integer > arr = dsu.getElements(j);
+                Collections.sort(arr);
+                sb.append("[");
+                for (int k = 0; k < arr.size(); k++) {
+                    if (k > 0)
+                        sb.append("  ");
+                    sb.append(arr.get(k).toString());
+                }
+                sb.append("]");
+            }
+            sb.append("\n");
+        }
+        sb.append("\n");
+        return sb.toString();
     }
 }

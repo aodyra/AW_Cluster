@@ -40,20 +40,31 @@ public class AW_Cluster {
         return path;
     }
     
+    public static int typeLinkage(Scanner sc){
+        int pilihanType;
+        System.out.println("Masukan tipe link: ");
+        System.out.println("1. Single Linkage");
+        System.out.println("2. Complete Linkage");
+        System.out.println("Pilihan: ");
+        pilihanType = sc.nextInt();
+        return pilihanType;
+    }
+    
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) throws Exception{
-        // TODO code application logic here
-        Scanner sc = new Scanner(System.in);
-        Instances trainingData;
-        ClusterEvaluation eval;
-        String path;
-        int pilihan;
-        int jumlahCluster;
-        int maxIter;
-        
-        do{
+    	// TODO code application logic here
+    	Scanner sc = new Scanner(System.in);
+    	Instances trainingData;
+    	ClusterEvaluation eval;
+    	String path;
+    	int pilihan;
+    	int jumlahCluster;
+    	int maxIter;
+    	int typeLinkage;
+   	 
+    	do {
             System.out.println("Masukan pilihan algoritma: ");
             System.out.println("1. MyKMeans");
             System.out.println("2. MyAgnes");
@@ -61,42 +72,39 @@ public class AW_Cluster {
             System.out.print("Pilihan: ");
             pilihan = sc.nextInt();
             if(pilihan == 1){
-                path = masukanFile(sc);
-                System.out.println("Masukan jumlah cluster: ");
-                jumlahCluster = sc.nextInt();
-                System.out.println("Masukan jumlah maksimum iterasi: ");
-                maxIter = sc.nextInt();
-                BufferedReader data = new BufferedReader(new FileReader(path));
-                trainingData = new Instances(data);
-                myKMeans kmeans = new myKMeans();
-                kmeans.setNumCluster(jumlahCluster);
-                kmeans.setMaxIteration(maxIter);
-                kmeans.buildClusterer(trainingData);
-                eval = new ClusterEvaluation();
-                eval.setClusterer(kmeans);
-                eval.evaluateClusterer(trainingData);
-                System.out.println("Cluster Evaluation: " + eval.clusterResultsToString());
-                System.out.println("");
+            	path = masukanFile(sc);
+            	System.out.println("Masukan jumlah cluster: ");
+            	jumlahCluster = sc.nextInt();
+            	System.out.println("Masukan jumlah maksimum iterasi: ");
+            	maxIter = sc.nextInt();
+            	BufferedReader data = new BufferedReader(new FileReader(path));
+            	trainingData = new Instances(data);
+            	myKMeans kmeans = new myKMeans();
+            	kmeans.setNumCluster(jumlahCluster);
+            	kmeans.setMaxIteration(maxIter);
+            	kmeans.buildClusterer(trainingData);
+            	eval = new ClusterEvaluation();
+            	eval.setClusterer(kmeans);
+            	eval.evaluateClusterer(trainingData);
+            	System.out.println("Cluster Evaluation: " + eval.clusterResultsToString());
+            	System.out.println("");
             } else if(pilihan == 2){
-                path = masukanFile(sc);
-                System.out.println("Masukan jumlah cluster: ");
-                jumlahCluster = sc.nextInt();
-                BufferedReader data = new BufferedReader(new FileReader(path));
-                trainingData = new Instances(data);
-                myAgnes agnes = new myAgnes();
-                agnes.setNumCluster(jumlahCluster);
-                agnes.buildClusterer(trainingData);
-                eval = new ClusterEvaluation();
-                eval.setClusterer(agnes);
-                eval.evaluateClusterer(trainingData);
+            	path = masukanFile(sc);
+            	System.out.println("Masukan jumlah cluster: ");
+            	jumlahCluster = sc.nextInt();
+            	typeLinkage = typeLinkage(sc);
+            	BufferedReader data = new BufferedReader(new FileReader(path));
+            	trainingData = new Instances(data);
+            	myAgnes agnes = new myAgnes();
+            	agnes.setNumCluster(jumlahCluster);
+            	agnes.setLinkage(typeLinkage);
+            	agnes.buildClusterer(trainingData);
+            	eval = new ClusterEvaluation();
+            	eval.setClusterer(agnes);
+            	eval.evaluateClusterer(trainingData);
                 System.out.println("Cluster Evaluation: " + eval.clusterResultsToString());
                 System.out.println("");
-            }
-            
+            }    
         }while(pilihan != 3);
-        
-        
-        
     }
-    
 }
