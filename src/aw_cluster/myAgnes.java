@@ -6,7 +6,6 @@
 package aw_cluster;
 
 import java.util.ArrayList;
-import java.util.Random;
 import weka.clusterers.AbstractClusterer;
 import weka.core.Capabilities;
 import weka.core.Capabilities.Capability;
@@ -37,7 +36,7 @@ public class myAgnes extends AbstractClusterer
     private int[] assignments;
     private ArrayList< Integer >[] clusterIndex;
 
-    private class MergePair implements Comparable< MergePair >  {
+    public class MergePair implements Comparable< MergePair >  {
         int i, j;
         double dist;
         MergePair(int i, int j, double dist) {
@@ -47,7 +46,7 @@ public class myAgnes extends AbstractClusterer
         }
 
         @Override
-        public int compareTo(Item other) {
+        public int compareTo(MergePair other) {
             double d = this.dist - other.dist;
             if (d < 0) {
                 return -1;
@@ -78,8 +77,7 @@ public class myAgnes extends AbstractClusterer
     public void buildClusterer(Instances data) throws Exception {
         getCapabilities().testWithFail(data);
         
-        Instances instances = new Instances(data);
-        finalCluster.deleteWithMissingClass();
+        instances = new Instances(data);
 
         instances.setClassIndex(-1);
         aliveIndexes = new ArrayList();
@@ -90,7 +88,7 @@ public class myAgnes extends AbstractClusterer
         distanceFunction.setInstances(instances);
 
         // Distance Matrix Inititalization
-        distanceMatrix = new Double[instances.numInstances()][instances.numInstances];
+        distanceMatrix = new Double[instances.numInstances()][instances.numInstances()];
         for (int i = 0; i < instances.numInstances(); i++) {
             for (int j = 0; j < instances.numInstances(); j++) {
                 distanceMatrix[i][j] = distanceFunction.distance(instances.instance(i), instances.instance(j));
@@ -102,18 +100,18 @@ public class myAgnes extends AbstractClusterer
             MergePair bestPair = new MergePair(-1, -1, 0);
             for (int i = 0; i < aliveIndexes.size(); i++) {
                 for (int j = i+1; j < aliveIndexes.size(); j++) {
-                    int index_i = aliveIndexes.get(i), index_j = aliveIndexs.get(j);
+                    int index_i = aliveIndexes.get(i), index_j = aliveIndexes.get(j);
                     MergePair currentPair = new MergePair(index_i, index_j, distanceMatrix[index_i][index_j]);
-                    if (bestPair.i < 0 || bestPair > currentPair)
+                    if (bestPair.i < 0 || bestPair.compareTo(currentPair) > 0)
                         bestPair = currentPair;
-                    else if (bestPair == currentPair && Math.random() < 0.5)
+                    else if (bestPair.compareTo(currentPair) == 0 && Math.random() < 0.5)
                         bestPair = currentPair; 
                 }
             }
 
             // Merge Two Nearest Cluster
             mergePairs.add(bestPair);
-            int index_j = aliveIndexes.get(bestPair.j);
+            int index_j = aliveIndexes.indexOf(bestPair.j);
             aliveIndexes.remove(index_j);
 
             // Update Distance Matrix
@@ -143,25 +141,34 @@ public class myAgnes extends AbstractClusterer
                 par[i] = -1;
         }
         public int find(int x) {
-            return p[x] < 0 ? x : p[x] = find(p[x]);
+            if (par[x] < 0) return x;
+            else {
+                par[x] = find(par[x]);
+                return par[x];
+            }
         }
         public boolean merge(int u, int v) {
             u = find(u);
             v = find(v);
             if (u == v)
                 return false;
-            if (par[u] < par[v])
-                swap(u, v);
-            par[v] += par[u];
-            par[u] = v;
+            if (par[u] < par[v]) {
+                par[u] += par[v];
+                par[v] = u;
+            }
+            else {
+                par[v] += par[u];
+                par[u] = v;
+            }
             return true;
         }
         public void normalize() {
             int cnt = 0;
-            for (int i = 0; i < n; i++)
-                if (p[i] < 0)
+            set = new int[par.length];
+            for (int i = 0; i < par.length; i++)
+                if (par[i] < 0)
                     set[i] = cnt++;
-            for (int i = 0; i < n; i++)
+            for (int i = 0; i < par.length; i++)
                 set[i] = set[find(i)];
         }
         public int getSet(int i) {
@@ -170,7 +177,8 @@ public class myAgnes extends AbstractClusterer
     }
 
     public void constuctCluster(int noCluster) {
-        DisjoinSetUnion dsu = new DisjoinSetUnion(instances.numInstances);
+        DisjoinSetUnion dsu = new DisjoinSetUnion(instances.numInstances());
+        assignments = new int[instances.numInstances()];
         for (int i = 0; i < instances.numInstances() - noCluster; i++) {
             MergePair pair = mergePairs.get(i);
             dsu.merge(pair.i, pair.j);
@@ -178,8 +186,8 @@ public class myAgnes extends AbstractClusterer
         dsu.normalize();
         clusterIndex = new ArrayList[noCluster];
         for (int i = 0; i < noCluster; i++)
-            clusterIndex = new ArrayList();
-        for (int i = 0; i < instance.numInstances(); i++) {
+            clusterIndex[i] = new ArrayList();
+        for (int i = 0; i < instances.numInstances(); i++) {
             assignments[i] = dsu.getSet(i);
             clusterIndex[dsu.getSet(i)].add(i);
         }
@@ -189,7 +197,7 @@ public class myAgnes extends AbstractClusterer
     public int clusterInstance(Instance instance){
         int cluster = -1;
         double dist = 0;
-        for int i = 0; i < instances.numInstances(); i++) {
+        for (int i = 0; i < instances.numInstances(); i++) {
             double curDist = distanceFunction.distance(instance, instances.instance(i));
             if (cluster == -1 || dist > curDist) {
                 cluster = assignments[i];
@@ -214,7 +222,8 @@ public class myAgnes extends AbstractClusterer
     
     public void setNumCluster(int numCluster) {
         this.numCluster = numCluster;
-        constuctCluster(numCluster);
+        if (mergePairs != null)
+            constuctCluster(numCluster);
     }
 
     public void setDistanceFunction(DistanceFunction distanceFunction) {

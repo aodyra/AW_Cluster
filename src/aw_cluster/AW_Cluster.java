@@ -79,6 +79,18 @@ public class AW_Cluster {
                 System.out.println("");
             } else if(pilihan == 2){
                 path = masukanFile(sc);
+                System.out.println("Masukan jumlah cluster: ");
+                jumlahCluster = sc.nextInt();
+                BufferedReader data = new BufferedReader(new FileReader(path));
+                trainingData = new Instances(data);
+                myAgnes agnes = new myAgnes();
+                agnes.setNumCluster(jumlahCluster);
+                agnes.buildClusterer(trainingData);
+                eval = new ClusterEvaluation();
+                eval.setClusterer(agnes);
+                eval.evaluateClusterer(trainingData);
+                System.out.println("Cluster Evaluation: " + eval.clusterResultsToString());
+                System.out.println("");
             }
             
         }while(pilihan != 3);
