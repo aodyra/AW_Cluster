@@ -233,11 +233,9 @@ public class myKMeans extends AbstractClusterer {
                     containsNumeric = true;
                     double width = Math.log(Math.abs(centroid.instance(i).value(j))) /
                             Math.log(10.0);
-                    //          System.err.println(m_ClusterCentroids.instance(i).value(j)+" "+width);
                     if (width < 0) {
                         width = 1;
                     }
-                    // decimal + # decimal places + 1
                     width += 6.0;
                     if ((int)width > maxWidth) {
                         maxWidth = (int)width;
@@ -289,12 +287,6 @@ public class myKMeans extends AbstractClusterer {
 
 
         StringBuffer temp = new StringBuffer();
-        //    String naString = "N/A";
-
-
-    /*    for (int i = 0; i < maxWidth+2; i++) {
-          naString += " ";
-          } */
         temp.append("\nkMeans\n======\n");
         temp.append("\nNumber of iterations: " + numIteration + "\n");
 
@@ -309,9 +301,6 @@ public class myKMeans extends AbstractClusterer {
 
         temp.append("\n");
         temp.append(pad("Attribute", " ", maxAttWidth - "Attribute".length(), false));
-
-
-//        temp.append(pad("Full Data", " ", maxWidth + 1 - "Full Data".length(), true));
 
         // cluster numbers
         for (int i = 0; i < numCluster; i++) {
@@ -343,25 +332,6 @@ public class myKMeans extends AbstractClusterer {
 
             String strVal;
             String valMeanMode;
-            // full data
-//            if (centroid.attribute(i).isNominal()) {
-//                if (m_FullMeansOrMediansOrModes[i] == -1) { // missing
-//                    valMeanMode = pad("missing", " ", maxWidth + 1 - "missing".length(), true);
-//                } else {
-//                    valMeanMode =
-//                            pad((strVal = centroid.attribute(i).value((int)m_FullMeansOrMediansOrModes[i])),
-//                                    " ", maxWidth + 1 - strVal.length(), true);
-//                }
-//            } else {
-//                if (Double.isNaN(m_FullMeansOrMediansOrModes[i])) {
-//                    valMeanMode = pad("missing", " ", maxWidth + 1 - "missing".length(), true);
-//                } else {
-//                    valMeanMode =  pad((strVal = Utils.doubleToString(m_FullMeansOrMediansOrModes[i],
-//                            maxWidth,4).trim()),
-//                            " ", maxWidth + 1 - strVal.length(), true);
-//                }
-//            }
-//            temp.append(valMeanMode);
 
             for (int j = 0; j < numCluster; j++) {
                 if (centroid.attribute(i).isNominal()) {
