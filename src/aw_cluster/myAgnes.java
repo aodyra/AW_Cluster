@@ -5,7 +5,7 @@
  */
 package aw_cluster;
 
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.Random;
 import weka.clusterers.AbstractClusterer;
 import weka.core.Capabilities;
@@ -17,9 +17,9 @@ import weka.core.Instances;
 
 /**
  *
- * @author aodyra
+ * @author Wiwit Rifa'i
  */
-public class myKMeans extends AbstractClusterer
+public class myAgnes extends AbstractClusterer
 {
     
     private Instances instances;
@@ -29,7 +29,7 @@ public class myKMeans extends AbstractClusterer
     public static final int COMPLETE_LINKAGE = 2;
     private int linkage = 1;
 
-    private Double distanceMatrix[][];
+    private Double[][] distanceMatrix;
     private ArrayList< Integer > aliveIndexes;
     private ArrayList< MergePair > mergePairs;
 
@@ -90,9 +90,8 @@ public class myKMeans extends AbstractClusterer
         distanceFunction.setInstances(instances);
 
         // Distance Matrix Inititalization
-        distanceMatrix = new Double[instances.numInstances()][];
+        distanceMatrix = new Double[instances.numInstances()][instances.numInstances];
         for (int i = 0; i < instances.numInstances(); i++) {
-            distanceMatrix[i] = new Double[instances.numInstances];
             for (int j = 0; j < instances.numInstances(); j++) {
                 distanceMatrix[i][j] = distanceFunction.distance(instances.instance(i), instances.instance(j));
             }
