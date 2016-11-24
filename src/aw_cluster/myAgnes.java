@@ -248,6 +248,7 @@ public class myAgnes extends AbstractClusterer
         DisjoinSetUnion dsu = new DisjoinSetUnion(instances.numInstances());
         for (int i = 0; i < instances.numInstances(); i++)
             sb.append("["+i+"]");
+        sb.append("\n");
         for (int i = 0; i < mergePairs.size(); i++) {
             dsu.merge(mergePairs.get(i).i, mergePairs.get(i).j);
             for (int j = 0; j < instances.numInstances(); j++) if (dsu.getElements(j) != null) {
