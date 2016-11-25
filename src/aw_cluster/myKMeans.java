@@ -85,7 +85,6 @@ public class myKMeans extends AbstractClusterer {
         tempInstances = null;
         
         boolean converged = false;
-        boolean firstIteration = true;
         while(!converged){
             converged = true;
             numIteration++;
